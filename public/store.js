@@ -67,8 +67,7 @@
           (hash(`${state.mainTab}|${book.id}|${book.author}`) % 800) +
           (books.length - index),
       }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 16);
+      .sort((a, b) => b.score - a.score);
   }
 
   function rankBase(tab) {
