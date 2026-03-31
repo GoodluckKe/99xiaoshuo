@@ -1,12 +1,12 @@
 {
   "sessions": {
     "69a-SsyyTwlmjYgH82gkS1qQFGVZrXqv": {
-      "expiresAt": 1775554096340,
-      "updatedAt": "2026-03-31T09:28:16.341Z",
+      "expiresAt": 1775554364835,
+      "updatedAt": "2026-03-31T09:32:44.836Z",
       "session": {
         "cookie": {
           "originalMaxAge": 604799999,
-          "expires": "2026-04-07T09:28:16.340Z",
+          "expires": "2026-04-07T09:32:44.835Z",
           "secure": false,
           "httpOnly": true,
           "path": "/",
