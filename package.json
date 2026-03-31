@@ -1,0 +1,16 @@
+{
+  "name": "99xiaoshuo-secondme-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SecondMe OAuth login + user info demo for 99小说 app",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "smoke": "bash scripts/smoke.sh"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  }
+}
