@@ -14,12 +14,12 @@
   --sky: #5c8fd8;
   --shadow: 0 18px 45px rgba(157, 81, 28, 0.15);
   --scene-image: url("/assets/generated-image?kind=scene&seed=app-shell&title=99%E5%B0%8F%E8%AF%B4&subtitle=%E4%BD%A0%E7%9A%84%E5%BF%83%E6%83%85%E5%86%99%E7%85%A7&w=2200&h=1500");
-  --panel-hero-image: url("/assets/generated-image?kind=hero&seed=panel-hero&title=%E4%BB%8A%E6%97%A5%E4%BA%BA%E6%A0%BC%E9%95%9C%E5%83%8F&subtitle=Today+Mirror&w=1600&h=900");
-  --panel-store-image: url("/assets/generated-image?kind=store&seed=panel-store&title=%E4%B9%A6%E5%9F%8E&subtitle=Book+Store&w=1600&h=1000");
-  --panel-reading-image: url("/assets/generated-image?kind=reading&seed=panel-reading&title=%E5%BD%93%E5%89%8D%E9%98%85%E8%AF%BB&subtitle=Current+Reading&w=1600&h=1000");
-  --panel-creator-image: url("/assets/generated-image?kind=creator&seed=panel-creator&title=%E5%88%9B%E4%BD%9C%E5%8F%B0&subtitle=Writing+Studio&w=1600&h=1000");
-  --panel-persona-image: url("/assets/generated-image?kind=persona&seed=panel-persona&title=%E4%BA%BA%E6%A0%BC%E5%88%86%E6%9E%90&subtitle=Persona+Lab&w=1600&h=950");
-  --panel-fortune-image: url("/assets/generated-image?kind=fortune&seed=panel-fortune&title=%E4%BB%8A%E6%97%A5%E8%BF%90%E5%8A%BF&subtitle=Daily+Fortune&w=1600&h=900");
+  --panel-hero-image: url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=personality analysis hero panel mirror reflection&image_size=landscape_16_9");
+  --panel-store-image: url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=book store interior warm cozy&image_size=landscape_16_9");
+  --panel-reading-image: url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=person reading book cozy environment&image_size=landscape_16_9");
+  --panel-creator-image: url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=writing studio creative workspace&image_size=landscape_16_9");
+  --panel-persona-image: url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=personality analysis lab dynamic colorful&image_size=landscape_16_9");
+  --panel-fortune-image: url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=daily fortune tarot cards mystic&image_size=landscape_16_9");
 }
 
 * {

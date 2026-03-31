@@ -214,7 +214,18 @@ function buildGeneratedImageUrl({ kind = "panel", seed = "default", title = "", 
     } else if (kind === "readerFooter") {
       description += " book chapter navigation footer realistic scene";
     } else if (kind === "scene") {
-      description += " book reading space realistic scene";
+      // 根据seed判断场景类型，生成更适合的描述
+      if (seed === "app-creator") {
+        description += " creative writing studio workspace inspiration desk books";
+      } else if (seed === "app-persona") {
+        description += " personality analysis lab psychology colorful dynamic visualization";
+      } else if (seed === "panel-creator") {
+        description += " writing desk creative workspace books notes inspiration";
+      } else if (seed === "panel-persona") {
+        description += " psychology lab personality traits analysis colorful charts";
+      } else {
+        description += " book reading space realistic scene";
+      }
     } else {
       description += " book cover realistic scene";
     }
@@ -222,7 +233,7 @@ function buildGeneratedImageUrl({ kind = "panel", seed = "default", title = "", 
     // 使用图片生成API
     const imageSize = w && h ? `${w}x${h}` : "600x900";
     const encodedDescription = encodeURIComponent(description);
-    return `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodedDescription}&image_size=square`;
+    return `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodedDescription}&image_size=landscape_16_9`;
   }
   
   // 对于其他类型，继续使用原来的SVG生成
@@ -1336,7 +1347,7 @@ function renderLandingPage({ hasClientSecret, isLoggedIn }) {
       background:
         radial-gradient(140% 100% at 70% 10%, rgba(255, 186, 132, .24), transparent 55%),
         linear-gradient(125deg, rgba(38, 20, 10, .34), rgba(84, 42, 20, .2)),
-        url("${buildGeneratedImageUrl({
+        url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=bookstore interior warm cozy lighting bookshelf novels reading space&image_size=landscape_16_9")
           kind: "landing",
           seed: "landing-scene",
           title: "99小说",
@@ -1658,20 +1669,76 @@ function renderAppPage(bootstrap, workspaceMode = "creator") {
   const mode = ["creator", "persona"].includes(String(workspaceMode || ""))
     ? String(workspaceMode)
     : "creator";
+  const pageTitle = mode === "creator" ? "99小说 · 创作台" : "99小说 · 人格分析";
+  const pageSubtitle = mode === "creator" ? "创作台" : "人格分析";
+  const sceneSeed = mode === "creator" ? "app-creator" : "app-persona";
+  const scenePrompt = mode === "creator" ? "writing studio creative workspace inspiration" : "personality analysis lab dynamic colorful psychology";
+  
+  // 为不同页面设置不同的颜色主题
+  let colorVariables = "";
+  if (mode === "creator") {
+    colorVariables = `
+      --bg-cream: #f8f3e9;
+      --bg-warm: #f0e6d2;
+      --ink-main: #2c1a10;
+      --ink-soft: #755340;
+      --brand: #ff7a3c;
+      --brand-deep: #e25a10;
+      --brand-soft: #ffd9c0;
+      --card: #fffefc;
+      --line: #e8d5c0;
+      --mint: #4d9d7f;
+      --sky: #5a89d0;
+      --shadow: 0 18px 45px rgba(145, 75, 25, 0.15);
+    `;
+  } else {
+    colorVariables = `
+      --bg-cream: #f0f5f9;
+      --bg-warm: #e6f0f8;
+      --ink-main: #1a2a3a;
+      --ink-soft: #6b7c8e;
+      --brand: #4a90e2;
+      --brand-deep: #357abd;
+      --brand-soft: #b8d4f2;
+      --card: #ffffff;
+      --line: #d0d9e3;
+      --mint: #4db8a1;
+      --sky: #5486c0;
+      --shadow: 0 18px 45px rgba(65, 105, 225, 0.15);
+    `;
+  }
+  
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>99小说 · 创作台</title>
+  <title>${pageTitle}</title>
   <link rel="stylesheet" href="${withAssetVersion("/assets/app.css")}" />
   <style>
     :root {
+      ${colorVariables}
       --scene-image: url('${buildGeneratedImageUrl({
         kind: "scene",
-        seed: "app-shell",
+        seed: sceneSeed,
         title: "99小说",
-        subtitle: "创作台",
+        subtitle: pageSubtitle,
+        w: 2200,
+        h: 1500,
+      })}');
+      --panel-creator-image: url('${buildGeneratedImageUrl({
+        kind: "scene",
+        seed: "panel-creator",
+        title: "创作台",
+        subtitle: "创意写作空间",
+        w: 2200,
+        h: 1500,
+      })}');
+      --panel-persona-image: url('${buildGeneratedImageUrl({
+        kind: "scene",
+        seed: "panel-persona",
+        title: "人格分析",
+        subtitle: "心理特质分析",
         w: 2200,
         h: 1500,
       })}');
@@ -1795,6 +1862,10 @@ function renderAppPage(bootstrap, workspaceMode = "creator") {
           <p id="personaSummary" class="persona-summary"></p>
           <div id="personaDetailCards" class="persona-detail-cards"></div>
           <div id="traitRows" class="trait-rows"></div>
+          <div class="persona-visuals">
+            <div class="persona-chart" id="personaChart"></div>
+            <div class="persona-insights" id="personaInsights"></div>
+          </div>
         </article>
       </section>
     </main>

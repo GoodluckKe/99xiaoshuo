@@ -233,7 +233,7 @@ body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  max-height: 400px;
+  max-height: 280px;
   overflow-y: auto;
   padding-right: 6px;
   scrollbar-width: thin;
@@ -261,7 +261,7 @@ body {
 .rank-columns.audio-mode,
 .rank-columns.video-mode {
   grid-template-columns: 1fr;
-  max-height: 400px;
+  max-height: 280px;
   overflow-y: auto;
   padding-right: 6px;
   scrollbar-width: thin;
