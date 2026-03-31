@@ -930,6 +930,14 @@
           <h4>当日建议</h4>
           <p>${result.plan}</p>
         </section>
+        <section class="persona-detail-card">
+          <h4>星座运势</h4>
+          <p>${result.fortune.zodiacSign}，${result.fortune.date}，今日运势 ${result.fortune.level}。</p>
+        </section>
+        <section class="persona-detail-card">
+          <h4>MBTI人格</h4>
+          <p>${result.fortune.mbtiType}：${result.fortune.mbtiDescription}</p>
+        </section>
       `;
     }
     traitRowsEl.innerHTML = result.displayTraits
@@ -945,6 +953,74 @@
     fortuneBadgeEl.textContent = `今日运势 ${result.fortune.level}`;
     fortuneTextEl.textContent = result.fortune.text;
     fortuneAdviceEl.textContent = result.fortune.advice;
+  }
+
+  // 根据日期计算星座
+  function getZodiacSign(month, day) {
+    const zodiacs = [
+      { sign: "摩羯座", start: { month: 12, day: 22 }, end: { month: 1, day: 19 } },
+      { sign: "水瓶座", start: { month: 1, day: 20 }, end: { month: 2, day: 18 } },
+      { sign: "双鱼座", start: { month: 2, day: 19 }, end: { month: 3, day: 20 } },
+      { sign: "白羊座", start: { month: 3, day: 21 }, end: { month: 4, day: 19 } },
+      { sign: "金牛座", start: { month: 4, day: 20 }, end: { month: 5, day: 20 } },
+      { sign: "双子座", start: { month: 5, day: 21 }, end: { month: 6, day: 21 } },
+      { sign: "巨蟹座", start: { month: 6, day: 22 }, end: { month: 7, day: 22 } },
+      { sign: "狮子座", start: { month: 7, day: 23 }, end: { month: 8, day: 22 } },
+      { sign: "处女座", start: { month: 8, day: 23 }, end: { month: 9, day: 22 } },
+      { sign: "天秤座", start: { month: 9, day: 23 }, end: { month: 10, day: 23 } },
+      { sign: "天蝎座", start: { month: 10, day: 24 }, end: { month: 11, day: 21 } },
+      { sign: "射手座", start: { month: 11, day: 22 }, end: { month: 12, day: 21 } },
+    ];
+    
+    for (const zodiac of zodiacs) {
+      if ((month === zodiac.start.month && day >= zodiac.start.day) ||
+          (month === zodiac.end.month && day <= zodiac.end.day)) {
+        return zodiac.sign;
+      }
+    }
+    return "摩羯座";
+  }
+
+  // 根据人格特质计算MBTI类型
+  function getMBTIType(traits) {
+    const openness = traits.find(t => t.key === "openness")?.value || 50;
+    const conscientiousness = traits.find(t => t.key === "conscientiousness")?.value || 50;
+    const extraversion = traits.find(t => t.key === "extraversion")?.value || 50;
+    const agreeableness = traits.find(t => t.key === "agreeableness")?.value || 50;
+    
+    // E/I: 外向/内向
+    const e_i = extraversion > 50 ? "E" : "I";
+    // S/N: 感觉/直觉
+    const s_n = openness > 50 ? "N" : "S";
+    // T/F: 思考/情感
+    const t_f = agreeableness > 50 ? "F" : "T";
+    // J/P: 判断/感知
+    const j_p = conscientiousness > 50 ? "J" : "P";
+    
+    return e_i + s_n + t_f + j_p;
+  }
+
+  // 获取MBTI类型描述
+  function getMBTIDescription(mbtiType) {
+    const descriptions = {
+      "INTJ": "建筑师：富有洞察力和战略性思维，喜欢解决复杂问题",
+      "INTP": "逻辑学家：好奇且分析能力强，喜欢理论和抽象概念",
+      "ENTJ": "指挥官：自信且果断，善于组织和领导",
+      "ENTP": "辩论家：机智且创新，喜欢挑战和辩论",
+      "INFJ": "提倡者：理想主义且富有洞察力，关注他人成长",
+      "INFP": "调停者：理想主义且富有同情心，追求和谐",
+      "ENFJ": "主人公：热情且有领导力，善于激励他人",
+      "ENFP": "竞选者：充满热情和创造力，喜欢探索新可能性",
+      "ISTJ": "物流师：务实且可靠，重视秩序和传统",
+      "ISFJ": "守护者：温暖且负责任，善于照顾他人",
+      "ESTJ": "执行官：务实且组织能力强，重视规则和效率",
+      "ESFJ": "领事：热情且社交能力强，重视和谐和传统",
+      "ISTP": "鉴赏家：灵活且实用，善于解决实际问题",
+      "ISFP": "探险家：敏感且艺术感强，追求个人表达",
+      "ESTP": "企业家：充满活力且行动派，善于应对挑战",
+      "ESFP": "表演者：热情且外向，喜欢社交和娱乐",
+    };
+    return descriptions[mbtiType] || "独特的人格类型";
   }
 
   function buildPersonalityModel() {
@@ -1012,7 +1088,31 @@
     const summary = deriveSummary(traits, readStats, writingStats);
     const fortune = buildDailyFortune(traits, readStats, writingStats);
     const plan = buildPersonaPlan(readStats, writingStats, traits);
-    return { traits, displayTraits, personaType, summary, fortune, plan, reading: readStats, writing: writingStats };
+    
+    // 获取当前日期和星座
+    const today = new Date();
+    const zodiacSign = getZodiacSign(today.getMonth() + 1, today.getDate());
+    
+    // 获取MBTI类型
+    const mbtiType = getMBTIType(traits);
+    const mbtiDescription = getMBTIDescription(mbtiType);
+    
+    return { 
+      traits, 
+      displayTraits, 
+      personaType, 
+      summary, 
+      fortune: {
+        ...fortune,
+        zodiacSign,
+        mbtiType,
+        mbtiDescription,
+        date: today.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }),
+      }, 
+      plan, 
+      reading: readStats, 
+      writing: writingStats 
+    };
   }
 
   function summarizeReading() {

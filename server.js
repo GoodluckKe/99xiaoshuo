@@ -230,10 +230,10 @@ function buildGeneratedImageUrl({ kind = "panel", seed = "default", title = "", 
       description += " book cover realistic scene";
     }
     
-    // 使用图片生成API
-    const imageSize = w && h ? `${w}x${h}` : "600x900";
+    // 使用图片生成API，使用更小的尺寸以加快生成速度
+    const imageSize = w && h ? `${w}x${h}` : "400x600";
     const encodedDescription = encodeURIComponent(description);
-    return `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodedDescription}&image_size=landscape_16_9`;
+    return `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodedDescription}&image_size=landscape_4_3`;
   }
   
   // 对于其他类型，继续使用原来的SVG生成
@@ -913,15 +913,28 @@ function createConfig() {
     .filter(Boolean);
   const mcpAuthMode = String(process.env.MCP_AUTH_MODE || "bearer_token").trim();
 
+  const clientSecret = readClientSecret();
+  console.log('加载的 client_secret 前20个字符:', clientSecret.substring(0, 20));
+  
+  // 自动根据环境选择回调地址
+  let redirectUri = process.env.SECONDME_REDIRECT_URI;
+  if (!redirectUri) {
+    if (appBaseUrl) {
+      redirectUri = `${appBaseUrl}/api/auth/callback`;
+    } else {
+      redirectUri = "http://localhost:3000/api/auth/callback";
+    }
+  }
+  
+  console.log('使用的回调地址:', redirectUri);
+  
   return {
     port: Number(process.env.PORT || 3000),
     host: process.env.HOST || "::",
     appBaseUrl,
     clientId: process.env.SECONDME_CLIENT_ID || "8614994a-75b1-4394-a765-ba9b321a553a",
-    clientSecret: readClientSecret(),
-    redirectUri:
-      process.env.SECONDME_REDIRECT_URI ||
-      (appBaseUrl ? `${appBaseUrl}/api/auth/callback` : "http://localhost:3000/api/auth/callback"),
+    clientSecret: clientSecret,
+    redirectUri: redirectUri,
     scope: normalizedScope.join(" "),
     scopeList: normalizedScope,
     oauthUrl: process.env.SECONDME_OAUTH_URL || "https://go.second.me/oauth/",
@@ -1244,6 +1257,74 @@ function buildDailyFortune(traits, readStats, writingStats) {
   };
 }
 
+// 根据日期计算星座
+function getZodiacSign(month, day) {
+  const zodiacs = [
+    { sign: "摩羯座", start: { month: 12, day: 22 }, end: { month: 1, day: 19 } },
+    { sign: "水瓶座", start: { month: 1, day: 20 }, end: { month: 2, day: 18 } },
+    { sign: "双鱼座", start: { month: 2, day: 19 }, end: { month: 3, day: 20 } },
+    { sign: "白羊座", start: { month: 3, day: 21 }, end: { month: 4, day: 19 } },
+    { sign: "金牛座", start: { month: 4, day: 20 }, end: { month: 5, day: 20 } },
+    { sign: "双子座", start: { month: 5, day: 21 }, end: { month: 6, day: 21 } },
+    { sign: "巨蟹座", start: { month: 6, day: 22 }, end: { month: 7, day: 22 } },
+    { sign: "狮子座", start: { month: 7, day: 23 }, end: { month: 8, day: 22 } },
+    { sign: "处女座", start: { month: 8, day: 23 }, end: { month: 9, day: 22 } },
+    { sign: "天秤座", start: { month: 9, day: 23 }, end: { month: 10, day: 23 } },
+    { sign: "天蝎座", start: { month: 10, day: 24 }, end: { month: 11, day: 21 } },
+    { sign: "射手座", start: { month: 11, day: 22 }, end: { month: 12, day: 21 } },
+  ];
+  
+  for (const zodiac of zodiacs) {
+    if ((month === zodiac.start.month && day >= zodiac.start.day) ||
+        (month === zodiac.end.month && day <= zodiac.end.day)) {
+      return zodiac.sign;
+    }
+  }
+  return "摩羯座";
+}
+
+// 根据人格特质计算MBTI类型
+function getMBTIType(traits) {
+  const openness = traits.find(t => t.key === "openness")?.value || 50;
+  const conscientiousness = traits.find(t => t.key === "conscientiousness")?.value || 50;
+  const extraversion = traits.find(t => t.key === "extraversion")?.value || 50;
+  const agreeableness = traits.find(t => t.key === "agreeableness")?.value || 50;
+  
+  // E/I: 外向/内向
+  const e_i = extraversion > 50 ? "E" : "I";
+  // S/N: 感觉/直觉
+  const s_n = openness > 50 ? "N" : "S";
+  // T/F: 思考/情感
+  const t_f = agreeableness > 50 ? "F" : "T";
+  // J/P: 判断/感知
+  const j_p = conscientiousness > 50 ? "J" : "P";
+  
+  return e_i + s_n + t_f + j_p;
+}
+
+// 获取MBTI类型描述
+function getMBTIDescription(mbtiType) {
+  const descriptions = {
+    "INTJ": "建筑师：富有洞察力和战略性思维，喜欢解决复杂问题",
+    "INTP": "逻辑学家：好奇且分析能力强，喜欢理论和抽象概念",
+    "ENTJ": "指挥官：自信且果断，善于组织和领导",
+    "ENTP": "辩论家：机智且创新，喜欢挑战和辩论",
+    "INFJ": "提倡者：理想主义且富有洞察力，关注他人成长",
+    "INFP": "调停者：理想主义且富有同情心，追求和谐",
+    "ENFJ": "主人公：热情且有领导力，善于激励他人",
+    "ENFP": "竞选者：充满热情和创造力，喜欢探索新可能性",
+    "ISTJ": "物流师：务实且可靠，重视秩序和传统",
+    "ISFJ": "守护者：温暖且负责任，善于照顾他人",
+    "ESTJ": "执行官：务实且组织能力强，重视规则和效率",
+    "ESFJ": "领事：热情且社交能力强，重视和谐和传统",
+    "ISTP": "鉴赏家：灵活且实用，善于解决实际问题",
+    "ISFP": "探险家：敏感且艺术感强，追求个人表达",
+    "ESTP": "企业家：充满活力且行动派，善于应对挑战",
+    "ESFP": "表演者：热情且外向，喜欢社交和娱乐",
+  };
+  return descriptions[mbtiType] || "独特的人格类型";
+}
+
 function buildPersonalitySnapshot(statePayload) {
   const readStats = summarizeReadingFromState(statePayload);
   const writingStats = summarizeWritingFromState(statePayload);
@@ -1300,12 +1381,29 @@ function buildPersonalitySnapshot(statePayload) {
     { key: "stability", label: "情绪稳定", value: Math.round(emotionalStability) },
   ];
 
+  // 获取当前日期和星座
+  const today = new Date();
+  const zodiacSign = getZodiacSign(today.getMonth() + 1, today.getDate());
+  
+  // 获取MBTI类型
+  const mbtiType = getMBTIType(traits);
+  const mbtiDescription = getMBTIDescription(mbtiType);
+
+  // 生成更详细的今日运势
+  const fortune = buildDailyFortune(traits, readStats, writingStats);
+  
   return {
     traits,
     displayTraits: traits.filter((item) => item.key !== "agreeableness"),
     personaType: derivePersonaType(traits),
     summary: deriveSummary(traits, readStats, writingStats),
-    fortune: buildDailyFortune(traits, readStats, writingStats),
+    fortune: {
+      ...fortune,
+      zodiacSign,
+      mbtiType,
+      mbtiDescription,
+      date: today.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }),
+    },
     reading: readStats,
     writing: writingStats,
   };
@@ -1669,8 +1767,8 @@ function renderAppPage(bootstrap, workspaceMode = "creator") {
   const mode = ["creator", "persona"].includes(String(workspaceMode || ""))
     ? String(workspaceMode)
     : "creator";
-  const pageTitle = mode === "creator" ? "99小说 · 创作台" : "99小说 · 人格分析";
-  const pageSubtitle = mode === "creator" ? "创作台" : "人格分析";
+  const pageTitle = mode === "creator" ? "99小说 · 创意空间" : "99小说 · 人格分析";
+  const pageSubtitle = mode === "creator" ? "创意空间" : "人格分析";
   const sceneSeed = mode === "creator" ? "app-creator" : "app-persona";
   const scenePrompt = mode === "creator" ? "writing studio creative workspace inspiration" : "personality analysis lab dynamic colorful psychology";
   
@@ -1751,8 +1849,8 @@ function renderAppPage(bootstrap, workspaceMode = "creator") {
       <div class="brand">
         <span class="brand-dot" aria-hidden="true"></span>
         <div>
-          <h1>99小说 · 创作台</h1>
-          <p>在这里开始你的创作之旅</p>
+          <h1>99小说 · 创意空间</h1>
+          <p>设计属于你的创作之旅，展现独特的艺术视角</p>
         </div>
       </div>
       <nav class="header-actions">
@@ -1807,7 +1905,7 @@ function renderAppPage(bootstrap, workspaceMode = "creator") {
       <section class="right-stack">
         <article class="panel creator-panel rise-in delay-1">
           <div class="panel-head">
-            <h3>创作台</h3>
+            <h3>创意空间</h3>
             <button id="saveDraftBtn" class="cta secondary">保存章节</button>
           </div>
           <div class="creator-row">
@@ -3056,7 +3154,7 @@ app.get("/auth/login", (req, res) => {
   }
 
   const state = crypto.randomBytes(16).toString("hex");
-  const redirectUri = resolveAuthRedirectUri(req, config);
+  const redirectUri = config.redirectUri;
   const returnTo = normalizeReturnPath(req.query.return || req.query.next, "/app");
   const authUrl = buildAuthUrl(config, state, redirectUri);
   rememberOAuthState(state, redirectUri, req, returnTo);
@@ -3111,8 +3209,7 @@ app.get("/api/auth/callback", async (req, res) => {
       return;
     }
 
-    const redirectUriForToken =
-      req.session.oauthRedirectUri || fallbackStateEntry?.redirectUri || config.redirectUri;
+    const redirectUriForToken = config.redirectUri;
     const returnToPath = normalizeReturnPath(
       req.session.oauthReturnTo || fallbackStateEntry?.returnTo,
       "/app"
